@@ -17,35 +17,35 @@
   <aside id="side" class="side">
     <div class="brand"><div class="logo">D</div><div><b>Djuita HR</b><small>House of Djuita</small></div></div>
     <nav class="nav">
-      <button data-view="dashboard" class="active">▦ &nbsp; Dashboard</button>
-      <button data-view="employees">◉ &nbsp; Employees</button>
-      <button data-view="approvals">✓ &nbsp; Approvals</button>
-      <button data-view="documents">▤ &nbsp; Documents</button>
-      <button data-view="history">◷ &nbsp; History</button>
+      <button data-view="dashboard" class="active">▦ &nbsp; Dasbor</button>
+      <button data-view="employees">◉ &nbsp; Karyawan</button>
+      <button data-view="approvals">✓ &nbsp; Persetujuan</button>
+      <button data-view="documents">▤ &nbsp; Dokumen</button>
+      <button data-view="history">◷ &nbsp; Riwayat</button>
     </nav>
     <div class="company"><b>PT Uchy Mitra Suksesindo</b><br>HR Portal · Mini V1.1</div>
   </aside>
   <main class="main">
-    <header class="top"><button class="menu" onclick="toggleMenu()" aria-label="Buka menu">☰</button><small>HUMAN RESOURCES PORTAL</small><div class="user"><div class="avatar">HP</div><div><b style="font-size:12px">Hana Putri</b><div style="font-size:10px;color:var(--muted)">Administrator</div></div></div></header>
+    <header class="top"><button class="menu" onclick="toggleMenu()" aria-label="Buka menu">☰</button><small>PORTAL SUMBER DAYA MANUSIA</small><div class="user"><div class="avatar">HP</div><div><b style="font-size:12px">Hana Putri</b><div style="font-size:10px;color:var(--muted)">Pengelola</div></div></div></header>
     <div class="content">
       <section id="dashboard" class="view active">
         <div class="hero"><div><div class="eyebrow">SELASA, 28 JULI</div><h1>Selamat pagi, Hana.</h1><p>Ringkasan operasional HR House of Djuita hari ini.</p></div><button class="primary" onclick="openRequest()">＋ Ajukan permohonan</button></div>
-        <div class="stats"><div class="card stat"><span>Total karyawan</span><strong>6</strong><small>Semua data terisi</small></div><div class="card stat"><span>Menunggu approval</span><strong id="pendingStat">2</strong><small>Perlu tindakan</small></div><div class="card stat"><span>Disetujui</span><strong id="approvedStat">1</strong><small>Bulan ini</small></div><div class="card stat"><span>Store aktif</span><strong>2</strong><small>Semua beroperasi</small></div></div>
-        <div class="grid"><div class="card"><div class="card-head"><div><h2>Approval terbaru</h2><p>Permohonan yang membutuhkan tindakan</p></div><button class="secondary" onclick="showView('approvals')">Lihat semua</button></div><div id="recentApprovals"></div></div><div class="card"><div class="card-head"><div><h2>Staf pre-filled</h2><p>Siap dipilih pada formulir</p></div></div><div id="staffPreview" class="staff-list"></div></div></div>
+        <div class="stats"><div class="card stat"><span>Total karyawan</span><strong>6</strong><small>Semua data terisi</small></div><div class="card stat"><span>Menunggu persetujuan</span><strong id="pendingStat">2</strong><small>Perlu tindakan</small></div><div class="card stat"><span>Disetujui</span><strong id="approvedStat">1</strong><small>Bulan ini</small></div><div class="card stat"><span>Toko aktif</span><strong>2</strong><small>Semua beroperasi</small></div></div>
+        <div class="grid"><div class="card"><div class="card-head"><div><h2>Persetujuan terbaru</h2><p>Permohonan yang membutuhkan tindakan</p></div><button class="secondary" onclick="showView('approvals')">Lihat semua</button></div><div id="recentApprovals"></div></div><div class="card"><div class="card-head"><div><h2>Data staf sudah terisi</h2><p>Siap dipilih pada formulir</p></div></div><div id="staffPreview" class="staff-list"></div></div></div>
       </section>
-      <section id="employees" class="view"><div class="hero"><div><div class="eyebrow">MASTER DATA</div><h1>Employees</h1><p>Data SPG yang sudah terisi untuk workflow.</p></div></div><div class="card" style="margin-top:28px"><div id="staffAll" class="staff-list"></div></div></section>
-      <section id="approvals" class="view"><div class="hero"><div><div class="eyebrow">WORKFLOW</div><h1>Approvals</h1><p>Review, setujui, atau tolak permohonan staf.</p></div><button class="primary" onclick="openRequest()">＋ Permohonan baru</button></div><div class="card" style="margin-top:28px"><div class="card-head"><div><h2>Daftar permohonan</h2><p>Riwayat tersimpan pada perangkat ini</p></div><select id="filter" onchange="render()" aria-label="Filter status"><option>Semua</option><option>Draft</option><option>Submitted</option><option>Approved</option><option>Rejected</option></select></div><div id="approvalList"></div></div></section>
-      <section id="documents" class="view"><div class="hero"><div><div class="eyebrow">DOCUMENTS</div><h1>Documents</h1><p>Dokumen akan dibuat setelah permohonan disetujui.</p></div></div><div class="card empty" style="margin-top:28px">Pilih permohonan berstatus Approved untuk menyiapkan dokumen.</div></section>
-      <section id="history" class="view"><div class="hero"><div><div class="eyebrow">AUDIT TRAIL</div><h1>History</h1><p>Aktivitas approval terbaru.</p></div></div><div id="historyList" class="card" style="margin-top:28px"></div></section>
+      <section id="employees" class="view"><div class="hero"><div><div class="eyebrow">DATA INDUK</div><h1>Karyawan</h1><p>Data SPG yang sudah terisi untuk alur kerja.</p></div></div><div class="card" style="margin-top:28px"><div id="staffAll" class="staff-list"></div></div></section>
+      <section id="approvals" class="view"><div class="hero"><div><div class="eyebrow">ALUR KERJA</div><h1>Persetujuan</h1><p>Tinjau, setujui, atau tolak permohonan staf.</p></div><button class="primary" onclick="openRequest()">＋ Permohonan baru</button></div><div class="card" style="margin-top:28px"><div class="card-head"><div><h2>Daftar permohonan</h2><p>Riwayat tersimpan pada perangkat ini</p></div><select id="filter" onchange="render()" aria-label="Saring status"><option value="Semua">Semua</option><option value="Draft">Draf</option><option value="Submitted">Diajukan</option><option value="Approved">Disetujui</option><option value="Rejected">Ditolak</option></select></div><div id="approvalList"></div></div></section>
+      <section id="documents" class="view"><div class="hero"><div><div class="eyebrow">DOKUMEN</div><h1>Dokumen</h1><p>Dokumen akan dibuat setelah permohonan disetujui.</p></div></div><div class="card empty" style="margin-top:28px">Pilih permohonan berstatus Disetujui untuk menyiapkan dokumen.</div></section>
+      <section id="history" class="view"><div class="hero"><div><div class="eyebrow">JEJAK AUDIT</div><h1>Riwayat</h1><p>Aktivitas persetujuan terbaru.</p></div></div><div id="historyList" class="card" style="margin-top:28px"></div></section>
     </div>
   </main>
 </div>
-<div id="requestModal" class="modal-wrap"><form class="modal" onsubmit="saveRequest(event)"><h2>Permohonan baru</h2><p>Data staf dan store sudah tersedia untuk dipilih.</p><div class="field"><label>Nama staf</label><select id="employeeSelect" required></select></div><div class="field"><label>Jenis permohonan</label><select id="typeSelect" required><option>SPG Leave Notification</option><option>Permission to Leave Early</option><option>SPG Replacement Letter</option><option>SPG Assistance Assignment</option></select></div><div class="field"><label>Tanggal efektif</label><input id="dateInput" type="date" required></div><div class="field"><label>Alasan / catatan</label><textarea id="reasonInput" required placeholder="Tuliskan detail permohonan"></textarea></div><div class="modal-actions"><button type="button" class="secondary" onclick="closeModal('requestModal')">Batal</button><button type="button" class="secondary" onclick="saveRequest(event,'Draft')">Simpan draft</button><button class="primary">Submit</button></div></form></div>
-<div id="reviewModal" class="modal-wrap"><div class="modal"><h2 id="reviewTitle">Review permohonan</h2><p id="reviewMeta"></p><div class="field"><label>Catatan approver</label><textarea id="approverNote" placeholder="Tambahkan catatan (opsional)"></textarea></div><div class="modal-actions approval-actions"><button class="secondary" onclick="closeModal('reviewModal')">Batal</button><button class="danger" onclick="decide('Rejected')">Tolak</button><button class="primary" onclick="decide('Approved')">Setujui</button></div></div></div>
+<div id="requestModal" class="modal-wrap"><form class="modal" onsubmit="saveRequest(event)"><h2>Permohonan baru</h2><p>Data staf dan toko sudah tersedia untuk dipilih.</p><div class="field"><label>Nama staf</label><select id="employeeSelect" required></select></div><div class="field"><label>Jenis permohonan</label><select id="typeSelect" required><option>Pemberitahuan Cuti SPG</option><option>Izin Pulang Lebih Awal</option><option>Surat Penggantian SPG</option><option>Penugasan Bantuan SPG</option></select></div><div class="field"><label>Tanggal efektif</label><input id="dateInput" type="date" required></div><div class="field"><label>Alasan / catatan</label><textarea id="reasonInput" required placeholder="Tuliskan detail permohonan"></textarea></div><div class="modal-actions"><button type="button" class="secondary" onclick="closeModal('requestModal')">Batal</button><button type="button" class="secondary" onclick="saveRequest(event,'Draft')">Simpan draf</button><button class="primary">Ajukan</button></div></form></div>
+<div id="reviewModal" class="modal-wrap"><div class="modal"><h2 id="reviewTitle">Tinjau permohonan</h2><p id="reviewMeta"></p><div class="field"><label>Catatan pemberi persetujuan</label><textarea id="approverNote" placeholder="Tambahkan catatan (opsional)"></textarea></div><div class="modal-actions approval-actions"><button class="secondary" onclick="closeModal('reviewModal')">Batal</button><button class="danger" onclick="decide('Rejected')">Tolak</button><button class="primary" onclick="decide('Approved')">Setujui</button></div></div></div>
 <div id="toast" class="toast"></div>
 <script>
 const staff=[
- {id:'SPG-0241',name:'Aulia Rahma',role:'Senior SPG',store:'Metro Plaza Senayan',initial:'AR'},
+ {id:'SPG-0241',name:'Aulia Rahma',role:'SPG Senior',store:'Metro Plaza Senayan',initial:'AR'},
  {id:'SPG-0278',name:'Nadya Putri',role:'SPG',store:'Galeries Lafayette Pacific Place',initial:'NP'},
  {id:'SPG-0312',name:'Dinda Maharani',role:'SPG',store:'Metro Plaza Senayan',initial:'DM'},
  {id:'SPG-0326',name:'Salsa Anindya',role:'SPG',store:'Galeries Lafayette Pacific Place',initial:'SA'},
@@ -53,34 +53,35 @@ const staff=[
  {id:'SPG-0355',name:'Maya Kirana',role:'SPG',store:'Galeries Lafayette Pacific Place',initial:'MK'}
 ];
 const defaults=[
- {id:1003,employee:'Dinda Maharani',type:'SPG Leave Notification',date:'2026-07-30',reason:'Keperluan keluarga',status:'Submitted',created:'28 Jul 2026, 09:15',note:''},
- {id:1002,employee:'Nadya Putri',type:'Permission to Leave Early',date:'2026-07-29',reason:'Kontrol kesehatan',status:'Submitted',created:'27 Jul 2026, 15:40',note:''},
- {id:1001,employee:'Aulia Rahma',type:'SPG Assistance Assignment',date:'2026-07-28',reason:'Mendukung event store',status:'Approved',created:'27 Jul 2026, 10:20',note:'Disetujui untuk kebutuhan operasional',decided:'Hana Putri · 27 Jul 2026, 11:05'}
+ {id:1003,employee:'Dinda Maharani',type:'Pemberitahuan Cuti SPG',date:'2026-07-30',reason:'Keperluan keluarga',status:'Submitted',created:'28 Jul 2026, 09:15',note:''},
+ {id:1002,employee:'Nadya Putri',type:'Izin Pulang Lebih Awal',date:'2026-07-29',reason:'Kontrol kesehatan',status:'Submitted',created:'27 Jul 2026, 15:40',note:''},
+ {id:1001,employee:'Aulia Rahma',type:'Penugasan Bantuan SPG',date:'2026-07-28',reason:'Mendukung acara toko',status:'Approved',created:'27 Jul 2026, 10:20',note:'Disetujui untuk kebutuhan operasional',decided:'Hana Putri · 27 Jul 2026, 11:05'}
 ];
-let requests=JSON.parse(localStorage.getItem('djuitaRequests')||'null')||defaults;
+let requests=JSON.parse(localStorage.getItem('djuitaRequestsV2')||'null')||defaults;
 let reviewId=null;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function persist(){localStorage.setItem('djuitaRequests',JSON.stringify(requests))}
+function persist(){localStorage.setItem('djuitaRequestsV2',JSON.stringify(requests))}
 function notify(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function toggleMenu(){document.getElementById('side').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
 function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(document.getElementById('side').classList.contains('open'))toggleMenu();render()}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
-function badge(status){return `<span class="badge ${status.toLowerCase()}">${status}</span>`}
-function requestRow(r,review=false){const action=r.status==='Submitted'?`<button class="small-btn" onclick="openReview(${r.id})">Review</button>`:'';return `<div class="request"><div><h3>${esc(r.type)} · ${esc(r.employee)}</h3><p>${esc(r.date)} · ${esc(r.reason)}</p>${r.note?`<p><b>Catatan:</b> ${esc(r.note)}</p>`:''}</div><div class="approval-actions">${badge(r.status)}${review?action:''}</div></div>`}
-function staffRow(s){return `<div class="staff"><div class="avatar">${s.initial}</div><div class="staff-info"><b>${esc(s.name)}</b><small>${s.id} · ${esc(s.role)} · ${esc(s.store)}</small></div><span class="badge approved">Active</span></div>`}
+const statusLabel={Draft:'Draf',Submitted:'Diajukan',Approved:'Disetujui',Rejected:'Ditolak'};
+function badge(status){return `<span class="badge ${status.toLowerCase()}">${statusLabel[status]||status}</span>`}
+function requestRow(r,review=false){const action=r.status==='Submitted'?`<button class="small-btn" onclick="openReview(${r.id})">Tinjau</button>`:'';return `<div class="request"><div><h3>${esc(r.type)} · ${esc(r.employee)}</h3><p>${esc(r.date)} · ${esc(r.reason)}</p>${r.note?`<p><b>Catatan:</b> ${esc(r.note)}</p>`:''}</div><div class="approval-actions">${badge(r.status)}${review?action:''}</div></div>`}
+function staffRow(s){return `<div class="staff"><div class="avatar">${s.initial}</div><div class="staff-info"><b>${esc(s.name)}</b><small>${s.id} · ${esc(s.role)} · ${esc(s.store)}</small></div><span class="badge approved">Aktif</span></div>`}
 function render(){
  const filter=document.getElementById('filter')?.value||'Semua';const filtered=filter==='Semua'?requests:requests.filter(r=>r.status===filter);
  document.getElementById('approvalList').innerHTML=filtered.length?filtered.map(r=>requestRow(r,true)).join(''):'<div class="empty">Tidak ada permohonan.</div>';
- document.getElementById('recentApprovals').innerHTML=requests.filter(r=>r.status==='Submitted').slice(0,3).map(r=>requestRow(r,true)).join('')||'<div class="empty">Semua approval selesai.</div>';
+ document.getElementById('recentApprovals').innerHTML=requests.filter(r=>r.status==='Submitted').slice(0,3).map(r=>requestRow(r,true)).join('')||'<div class="empty">Semua persetujuan selesai.</div>';
  document.getElementById('pendingStat').textContent=requests.filter(r=>r.status==='Submitted').length;
  document.getElementById('approvedStat').textContent=requests.filter(r=>r.status==='Approved').length;
  document.getElementById('staffPreview').innerHTML=staff.slice(0,3).map(staffRow).join('');
  document.getElementById('staffAll').innerHTML=staff.map(staffRow).join('');
- document.getElementById('historyList').innerHTML=requests.filter(r=>r.status==='Approved'||r.status==='Rejected').map(r=>`<div class="request"><div><h3>${esc(r.status)} · ${esc(r.employee)}</h3><p>${esc(r.type)} · ${esc(r.decided||r.created)}</p></div>${badge(r.status)}</div>`).join('')||'<div class="empty">Belum ada aktivitas.</div>';
+ document.getElementById('historyList').innerHTML=requests.filter(r=>r.status==='Approved'||r.status==='Rejected').map(r=>`<div class="request"><div><h3>${esc(statusLabel[r.status])} · ${esc(r.employee)}</h3><p>${esc(r.type)} · ${esc(r.decided||r.created)}</p></div>${badge(r.status)}</div>`).join('')||'<div class="empty">Belum ada aktivitas.</div>';
 }
 function openRequest(){document.getElementById('employeeSelect').innerHTML=staff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} · ${s.id}</option>`).join('');document.getElementById('dateInput').value='2026-07-29';document.getElementById('requestModal').classList.add('show')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
-function saveRequest(e,status='Submitted'){e.preventDefault();const reason=document.getElementById('reasonInput').value.trim();if(!reason){notify('Alasan wajib diisi');return}requests.unshift({id:Date.now(),employee:document.getElementById('employeeSelect').value,type:document.getElementById('typeSelect').value,date:document.getElementById('dateInput').value,reason,status,created:new Date().toLocaleString('id-ID'),note:''});persist();closeModal('requestModal');document.getElementById('reasonInput').value='';showView('approvals');notify(status==='Draft'?'Draft tersimpan':'Permohonan dikirim untuk approval')}
+function saveRequest(e,status='Submitted'){e.preventDefault();const reason=document.getElementById('reasonInput').value.trim();if(!reason){notify('Alasan wajib diisi');return}requests.unshift({id:Date.now(),employee:document.getElementById('employeeSelect').value,type:document.getElementById('typeSelect').value,date:document.getElementById('dateInput').value,reason,status,created:new Date().toLocaleString('id-ID'),note:''});persist();closeModal('requestModal');document.getElementById('reasonInput').value='';showView('approvals');notify(status==='Draft'?'Draf tersimpan':'Permohonan dikirim untuk persetujuan')}
 function openReview(id){reviewId=id;const r=requests.find(x=>x.id===id);document.getElementById('reviewTitle').textContent=r.type;document.getElementById('reviewMeta').textContent=`${r.employee} · ${r.date} · ${r.reason}`;document.getElementById('approverNote').value='';document.getElementById('reviewModal').classList.add('show')}
 function decide(status){const r=requests.find(x=>x.id===reviewId);r.status=status;r.note=document.getElementById('approverNote').value.trim();r.decided=`Hana Putri · ${new Date().toLocaleString('id-ID')}`;persist();closeModal('reviewModal');render();notify(status==='Approved'?'Permohonan disetujui':'Permohonan ditolak')}
 render();
