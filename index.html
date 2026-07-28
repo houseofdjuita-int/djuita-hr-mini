@@ -61,6 +61,7 @@ const staff=[
  {id:'SPG-MT-02',name:'Widiya Astiri (Widya)',role:'SPG',store:'Metro Plaza Senayan',initial:'WA'}
 ];
 const defaults=[
+ {id:2010,isExample:true,employee:'Ade Pertiwi (Tiwi)',nik:'',type:'Izin Tidak Masuk (Full Shift)',date:'2026-08-17',detail:'Durasi izin: 1 shift\nPeriode izin: 17 Agustus 2026 s.d. 17 Agustus 2026\nKembali bekerja: 18 Agustus 2026',reason:'Data uji warning libur nasional',replacementMode:'external',replacementName:'SPG Temporary Warning',replacementNik:'',status:'Submitted',created:'Contoh khusus warning Hari Kemerdekaan'},
  {id:2005,isExample:true,employee:'Ade Pertiwi (Tiwi)',nik:'',type:'Pemberitahuan Cuti SPG',date:'2026-08-03',detail:'Durasi cuti: 2 hari\nPeriode cuti: 3 Agustus 2026 s.d. 4 Agustus 2026\nJenis cuti: Keperluan keluarga\nKembali bekerja: 5 Agustus 2026',reason:'Keperluan keluarga',replacementMode:'registered',replacementName:'Widiya Astiri (Widya)',replacementNik:'',status:'Submitted',created:'Contoh skenario cuti dengan SPG pengganti terdaftar'},
  {id:2004,isExample:true,employee:'Dwi',nik:'',type:'Izin Tidak Masuk (Full Shift)',date:'2026-08-05',detail:'Durasi izin: 1 shift\nPeriode izin: 5 Agustus 2026 s.d. 5 Agustus 2026\nKembali bekerja: 6 Agustus 2026',reason:'Keperluan mendesak',replacementMode:'external',replacementName:'SPG Temporary (Contoh)',replacementNik:'',status:'Submitted',created:'Contoh izin full shift dengan SPG temporary'},
  {id:2003,isExample:true,employee:'Widiya Astiri (Widya)',nik:'',type:'Izin Pulang Lebih Awal',date:'2026-08-07',detail:'Jam izin pulang: 15.00 WIB\nJam pulang normal: 21.00 WIB\nKeterangan tambahan: Tetap masuk pada shift berjalan',reason:'Keperluan pribadi',status:'Submitted',created:'Contoh izin pulang lebih awal tanpa pengganti'},
@@ -68,6 +69,7 @@ const defaults=[
  {id:2001,isExample:true,employee:'Dwi',nik:'',type:'Surat Penugasan Staff Perbantuan SPG',date:'2026-08-12',detail:'Asal lokasi staff: Galeries Lafayette Pacific Place\nLokasi perbantuan: Metro Plaza Senayan\nTugas perbantuan: Mendukung operasional counter\nPeriode penugasan: 12 Agustus 2026 s.d. 14 Agustus 2026',reason:'Kebutuhan operasional sementara',status:'Submitted',created:'Contoh penugasan staff perbantuan'}
 ];
 let requests=JSON.parse(localStorage.getItem('djuitaRequestsV7')||'null')||defaults;
+if(!requests.some(r=>r.id===2010))requests.unshift({...defaults.find(r=>r.id===2010)});
 localStorage.removeItem('djuitaRequestsV4');
 localStorage.removeItem('djuitaRequestsV5');
 localStorage.removeItem('djuitaRequestsV6');
