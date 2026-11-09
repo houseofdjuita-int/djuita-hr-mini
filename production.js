@@ -64,6 +64,8 @@
     documentNumber: row.document_number,
     approvalNote: row.approval_note,
     rejectionNote: row.rejection_note,
+    revisionNote: row.revision_note,
+    cancellationNote: row.cancellation_note,
     approvedBy: row.approved_profile?.full_name,
     approvedAt: row.approved_at ? new Date(row.approved_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Jakarta' }) + ' WIB' : null,
     rejectedAt: row.rejected_at,
@@ -258,19 +260,20 @@
     event.preventDefault()
     if (!['Admin', 'Operator'].includes(currentUser?.role)) { notify('Anda tidak memiliki akses membuat permohonan'); return }
     const type = document.getElementById('typeSelect').value
-    const employeeName = document.getElementById('employeeSelect').value
+    const assistance = type === 'Surat Penugasan Staff Perbantuan SPG'
+    const employeeName = assistance ? document.getElementById('assistanceName').value.trim() : document.getElementById('employeeSelect').value
     const employee = staff.find(item => item.name === employeeName)
     const nik = document.getElementById('nikInput').value.trim()
     const reason = document.getElementById('reasonInput').value.trim()
-    const detail = document.getElementById('detailInput').value.trim()
+    const detail = buildStructuredDetail()
     const startDate = document.getElementById('dateInput').value
-    const endDate = document.getElementById('endDateInput').value
+    const endDate = type === 'Izin Pulang Lebih Awal' ? startDate : document.getElementById('endDateInput').value
     const shift = document.getElementById('shiftInput').value
     const needsReplacement = requiresReplacement(type)
     const replacementMode = needsReplacement ? document.getElementById('replacementMode').value : null
     const replacementName = needsReplacement ? (replacementMode === 'registered' ? document.getElementById('replacementStaff').value : document.getElementById('replacementName').value.trim()) : null
     const replacementNik = needsReplacement ? document.getElementById('replacementNik').value.trim() : null
-    if (!employee || !/^\d{16}$/.test(nik) || !reason || !detail || !startDate || !endDate || endDate < startDate) { notify('Lengkapi data permohonan dengan benar'); return }
+    if ((!employee && !assistance) || !employeeName || !/^\d{16}$/.test(nik) || !reason || !detail || !startDate || !endDate || endDate < startDate) { notify('Lengkapi data permohonan dengan benar'); return }
     if (needsReplacement && (!replacementName || !/^\d{16}$/.test(replacementNik))) { notify('Nama dan NIK SPG pengganti wajib lengkap'); return }
     if (!ktpImageData || (needsReplacement && !secondKtpImageData)) { notify('Lampiran KTP wajib lengkap'); return }
     const id = crypto.randomUUID()
@@ -279,8 +282,8 @@
       const paths = [await uploadData(ktpImageData, `${base}/ktp-staff.jpg`)]
       if (secondKtpImageData) paths.push(await uploadData(secondKtpImageData, `${base}/ktp-pengganti.jpg`))
       const { error } = await client.from('requests').insert({
-        id, employee_id: employee.id, employee_name: employeeName, employee_nik: nik, letter_type: type,
-        start_date: startDate, end_date: endDate, shift, detail: `Jadwal tidak masuk: ${formatDate(startDate)}${endDate !== startDate ? ' s.d. ' + formatDate(endDate) : ''}\nShift: ${shift}\n${detail}`,
+        id, employee_id: employee?.id || null, employee_name: employeeName, employee_nik: nik, letter_type: type,
+        start_date: startDate, end_date: endDate, shift, detail,
         reason, replacement_mode: replacementMode, replacement_name: replacementName, replacement_nik: replacementNik,
         attachment_paths: paths, status: event.submitter?.textContent?.toLowerCase().includes('draf') ? 'Draft' : 'Submitted', created_by: currentUser.id
       })
@@ -300,6 +303,10 @@
       if (action === 'Rejected') {
         const { error } = await client.rpc('reject_request', { p_request_id: reviewId, p_note: note })
         if (error) throw error
+      } else if (action === 'Revision' || action === 'Cancelled') {
+        if (!note) { notify('Catatan wajib diisi untuk revisi atau anulir'); return }
+        const { error } = await client.rpc('review_request', { p_request_id: reviewId, p_action: action, p_note: note })
+        if (error) throw error
       } else {
         if (!signatureData) { notify('Unggah tanda tangan dan cap terlebih dahulu'); return }
         const signaturePath = await uploadData(signatureData, `${currentUser.id}/${reviewId}/signature-${Date.now()}.png`)
@@ -308,7 +315,7 @@
       }
       closeModal('reviewModal')
       await loadRequests()
-      notify(action === 'Rejected' ? 'Permohonan ditolak' : 'Permohonan disetujui dan nomor surat dibuat')
+      notify(action === 'Rejected' ? 'Permohonan ditolak' : action === 'Revision' ? 'Dikembalikan untuk revisi' : action === 'Cancelled' ? 'Permohonan dianulir' : 'Permohonan disetujui dan nomor surat dibuat')
     } catch (error) { notify(error.message) }
   }
 
