@@ -1,4 +1,0 @@
-/api/config /.netlify/functions/config 200
-/api/users /.netlify/functions/users 200
-/api/bootstrap-admin /.netlify/functions/bootstrap-admin 200
-/* /index.html 200
