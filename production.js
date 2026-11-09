@@ -40,6 +40,7 @@
     name: profile.full_name,
     username: profile.username,
     role: profile.role,
+    staffId: profile.staff_id || null,
     active: profile.active,
     updated: profile.updated_at
   })
@@ -73,7 +74,7 @@
   })
 
   const loadProfile = async userId => {
-    const { data, error } = await client.from('profiles').select('id,username,full_name,role,active,updated_at').eq('id', userId).single()
+    const { data, error } = await client.from('profiles').select('id,username,full_name,role,staff_id,active,updated_at').eq('id', userId).single()
     if (error || !data?.active) throw new Error('Akun tidak aktif atau profil tidak tersedia')
     return data
   }
@@ -226,6 +227,7 @@
       fullName: document.getElementById('accessName').value.trim(),
       username: document.getElementById('accessUsername').value.trim().toLowerCase(),
       role: document.getElementById('accessRole').value,
+      staffId: document.getElementById('accessRole').value === 'Employee' ? document.getElementById('linkedStaffId').value : null,
       password: document.getElementById('accessPassword').value
     }
     try {
@@ -258,11 +260,13 @@
   saveRequest = async event => {
     if (!productionMode) return legacySaveRequest(event)
     event.preventDefault()
-    if (!['Admin', 'Operator'].includes(currentUser?.role)) { notify('Anda tidak memiliki akses membuat permohonan'); return }
+    if (!['Admin', 'Operator', 'Employee'].includes(currentUser?.role)) { notify('Anda tidak memiliki akses membuat permohonan'); return }
     const type = document.getElementById('typeSelect').value
     const assistance = type === 'Surat Penugasan Staff Perbantuan SPG'
-    const employeeName = assistance ? document.getElementById('assistanceName').value.trim() : document.getElementById('employeeSelect').value
-    const employee = staff.find(item => item.name === employeeName)
+    const selfService = currentUser?.role === 'Employee'
+    const linkedEmployee = selfService ? staff.find(item => item.id === currentUser.staffId) : null
+    const employeeName = assistance ? document.getElementById('assistanceName').value.trim() : selfService ? linkedEmployee?.name || '' : document.getElementById('employeeSelect').value
+    const employee = selfService ? linkedEmployee : staff.find(item => item.name === employeeName)
     const nik = document.getElementById('nikInput').value.trim()
     const reason = document.getElementById('reasonInput').value.trim()
     const detail = buildStructuredDetail()

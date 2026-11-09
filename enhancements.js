@@ -9,6 +9,7 @@
   const el = id => document.getElementById(id)
 
   el('loginPassword').minLength = 5
+  const employeeRole = 'Employee'
   const originalLogin = login
   window.login = async event => {
     const username = el('loginUsername').value.trim().toLowerCase()
@@ -40,6 +41,29 @@
   employeeField.insertAdjacentHTML('afterend', '<div id="assistanceStaffField" class="field" style="display:none"><label>Nama staff perbantuan</label><input id="assistanceName" placeholder="Diisi otomatis dari KTP atau ketik nama lengkap"></div>')
   el('nikInput').closest('.field').querySelector('label').id = 'identityLabel'
   el('detailInput').closest('.field').id = 'detailField'
+
+  const roleSelect = el('accessRole')
+  roleSelect.add(new Option('Pegawai/SPG — ajukan dan lihat permohonan sendiri', employeeRole))
+  roleSelect.closest('.field').insertAdjacentHTML('afterend', '<div id="linkedStaffField" class="field" style="display:none"><label>Terhubung ke staf</label><select id="linkedStaffId"></select><small class="credential-help">Nama, lokasi, dan identitas pengajuan akan dikunci sesuai staf ini.</small></div>')
+  const syncLinkedStaffField = () => {
+    const show = roleSelect.value === employeeRole
+    el('linkedStaffField').style.display = show ? 'block' : 'none'
+    el('linkedStaffId').required = show
+    if (show) el('linkedStaffId').innerHTML = staff.map(item => `<option value="${esc(item.id)}">${esc(item.name)} · ${esc(item.store)}</option>`).join('')
+  }
+  roleSelect.addEventListener('change', syncLinkedStaffField)
+  const originalOpenAccessUser = openAccessUser
+  window.openAccessUser = id => { originalOpenAccessUser(id); syncLinkedStaffField(); const user = accessUsers.find(item => item.id === id); if (user?.staffId) el('linkedStaffId').value = user.staffId }
+  const originalSaveAccessUser = saveAccessUser
+  window.saveAccessUser = async event => {
+    const id = el('accessUserId').value
+    const username = el('accessUsername').value.trim().toLowerCase()
+    const role = roleSelect.value
+    const staffId = role === employeeRole ? el('linkedStaffId').value : ''
+    await originalSaveAccessUser(event)
+    const user = accessUsers.find(item => item.id === id || item.username === username)
+    if (user) { user.staffId = staffId; persistAccessUsers() }
+  }
 
   const startField = el('dateInput').closest('.field')
   startField.querySelector('label').textContent = 'Tanggal mulai / tanggal izin'
@@ -148,7 +172,18 @@
   window.loadSecondKtp = async event => { const status = el('secondKtpStatus'); try { const result = await prepareImage(event, status); if (!result) return; secondKtpImageData = result.data; const { identity } = result; if (identity.nik) el('replacementNik').value = identity.nik; if (el('replacementMode').value === 'external' && identity.name) el('replacementName').value = identity.name.replace(/\b\w/g, letter => letter.toUpperCase()); status.textContent = 'Nama dan NIK SPG pengganti berhasil diproses; periksa kembali hasilnya.' } catch (error) { status.textContent = error.message || 'OCR gagal; isi manual.' } }
 
   const originalOpenRequest = openRequest
-  window.openRequest = () => { originalOpenRequest(); el('endDateInput').value = el('dateInput').value; el('leaveCategory').value = 'Cuti tahunan'; syncEarlyLeaveTimes(); syncLetterGuide(false) }
+  window.openRequest = () => {
+    originalOpenRequest()
+    const selfService = currentUser?.role === employeeRole
+    el('employeeSelect').disabled = selfService
+    if (selfService) {
+      const linked = staff.find(item => item.id === currentUser.staffId) || staff.find(item => item.name === currentUser.name)
+      if (!linked) { closeModal('requestModal'); notify('Akun belum dihubungkan ke data staf. Hubungi Admin.'); return }
+      el('employeeSelect').value = linked.name
+      syncEmployee(); syncReplacementMode()
+    }
+    el('endDateInput').value = el('dateInput').value; el('leaveCategory').value = 'Cuti tahunan'; syncEarlyLeaveTimes(); syncLetterGuide(false)
+  }
 
   const originalSave = saveRequest
   window.saveRequest = (event, status = 'Submitted') => {
@@ -163,6 +198,7 @@
     originalSave(event, status)
     if (type === ASSIST) secondKtpImageData = ''
     if (requests[0]?.id !== before) { const request = requests[0]; request.endDate = end; request.shift = el('shiftInput').value; if (type === ASSIST) request.ktpImages = [ktpImageData]; persist(); render() }
+    if (requests[0]?.id !== before && currentUser) { requests[0].createdBy = currentUser.id; persist() }
   }
 
   statusLabel.Revision = 'Perlu Revisi'; statusLabel.Cancelled = 'Dianulir'
@@ -194,7 +230,31 @@
   const originalRender = render
   window.render = () => {
     originalRender()
+    if (currentUser?.role === employeeRole) {
+      const linked = staff.find(item => item.id === currentUser.staffId) || staff.find(item => item.name === currentUser.name)
+      const own = requests.filter(request => request.createdBy === currentUser.id || request.employeeId === linked?.id || request.employee === linked?.name)
+      el('approvalList').innerHTML = own.length ? own.map(request => requestRow(request, false)).join('') : '<div class="empty">Belum ada pengajuan.</div>'
+      el('recentApprovals').innerHTML = own.slice(0, 3).map(request => requestRow(request, false)).join('') || '<div class="empty">Belum ada pengajuan terbaru.</div>'
+      el('pendingStat').textContent = own.filter(request => request.status === 'Submitted').length
+      el('approvedStat').textContent = own.filter(request => request.status === 'Approved').length
+    }
     el('historyList').innerHTML = requests.filter(request => ['Approved', 'Rejected', 'Revision', 'Cancelled'].includes(request.status)).map(request => `<div class="request"><div><h3>${esc(statusLabel[request.status])} · ${esc(request.employee)}</h3><p>${esc(request.type)} · ${esc(request.reviewedAt || request.decided || request.created)}</p></div>${badge(request.status)}</div>`).join('') || '<div class="empty">Belum ada aktivitas.</div>'
+  }
+
+  const originalActivateSession = activateSession
+  window.activateSession = user => {
+    originalActivateSession(user)
+    const selfService = user.role === employeeRole
+    document.querySelectorAll('[onclick="openRequest()"]').forEach(button => button.style.display = ['Admin', 'Operator', employeeRole].includes(user.role) ? '' : 'none')
+    document.querySelectorAll('.nav button').forEach(button => { if (selfService) button.style.display = ['dashboard', 'approvals'].includes(button.dataset.view) ? 'flex' : 'none'; else if (button.id !== 'accessNav') button.style.display = 'flex' })
+    if (selfService) {
+      document.querySelector('#approvals h1').textContent = 'Pengajuan Saya'
+      document.querySelector('#approvals .hero p').textContent = 'Ajukan dan pantau status cuti, libur/off, atau izin Anda.'
+      document.querySelector('#approvals .hero .primary').textContent = '＋ Ajukan izin / cuti'
+    }
+    ;[...typeSelect.options].forEach(option => { option.disabled = selfService && ![CUTI, OFF, FULL, EARLY].includes(option.value) })
+    if (selfService && typeSelect.selectedOptions[0]?.disabled) typeSelect.value = CUTI
+    render()
   }
 
   const originalOpenDocument = openDocument

@@ -4,7 +4,7 @@ export default async request => {
   try {
     const { client, actor } = await requireAdmin(request)
     if (request.method === 'GET') {
-      const { data, error } = await client.from('profiles').select('id,username,full_name,role,active,created_at,updated_at').order('full_name')
+      const { data, error } = await client.from('profiles').select('id,username,full_name,role,staff_id,active,created_at,updated_at').order('full_name')
       if (error) throw error
       return json({ users: data })
     }
@@ -15,8 +15,10 @@ export default async request => {
       const username = String(body.username || '').trim().toLowerCase()
       const fullName = String(body.fullName || '').trim()
       const password = String(body.password || '')
-      const roles = ['Admin', 'Approver', 'Operator', 'Viewer']
+      const roles = ['Admin', 'Approver', 'Operator', 'Viewer', 'Employee']
       if (!/^[a-z0-9._-]{4,40}$/.test(username) || fullName.length < 2 || !roles.includes(body.role)) return json({ error: 'Data pengguna tidak valid' }, 400)
+      const staffId = body.role === 'Employee' ? String(body.staffId || '') : null
+      if (body.role === 'Employee' && !staffId) return json({ error: 'Akun Pegawai/SPG harus dihubungkan ke staf' }, 400)
       if (!id && password.length < 10) return json({ error: 'Kata sandi awal minimal 10 karakter' }, 400)
       const { authDomain } = env()
       let userId = id
@@ -24,7 +26,7 @@ export default async request => {
         const { data, error } = await client.auth.admin.createUser({ email: authEmail(username, authDomain), password, email_confirm: true, user_metadata: { full_name: fullName } })
         if (error) throw error
         userId = data.user.id
-        const { error: profileError } = await client.from('profiles').insert({ id: userId, username, full_name: fullName, role: body.role, active: true })
+        const { error: profileError } = await client.from('profiles').insert({ id: userId, username, full_name: fullName, role: body.role, staff_id: staffId, active: true })
         if (profileError) { await client.auth.admin.deleteUser(userId); throw profileError }
       } else {
         const { data: target } = await client.from('profiles').select('role,active').eq('id', id).single()
@@ -36,7 +38,7 @@ export default async request => {
         if (password) { if (password.length < 10) return json({ error: 'Kata sandi minimal 10 karakter' }, 400); authUpdate.password = password }
         const { error: authError } = await client.auth.admin.updateUserById(id, authUpdate)
         if (authError) throw authError
-        const { error } = await client.from('profiles').update({ username, full_name: fullName, role: body.role }).eq('id', id)
+        const { error } = await client.from('profiles').update({ username, full_name: fullName, role: body.role, staff_id: staffId }).eq('id', id)
         if (error) throw error
       }
       await client.from('audit_logs').insert({ actor_id: actor.id, action: id ? 'user.updated' : 'user.created', entity_type: 'profile', entity_id: userId, metadata: { role: body.role } })
