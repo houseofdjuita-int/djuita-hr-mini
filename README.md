@@ -15,7 +15,7 @@ Jika endpoint `/api/config` tidak tersedia, portal masuk ke mode pratinjau lokal
 ## Setup Supabase
 
 1. Buat proyek Supabase.
-2. Jalankan seluruh isi `supabase/migrations/202607290001_initial.sql` melalui SQL Editor atau Supabase CLI.
+2. Jalankan **seluruh file** di `supabase/migrations/` secara berurutan melalui SQL Editor atau Supabase CLI. Jangan hanya menjalankan migrasi awal; migrasi berikutnya menambahkan status revisi/anulir dan akun self-service Pegawai/SPG.
 3. Salin Project URL, publishable key, dan secret key.
 4. Jangan pernah menaruh secret key di HTML, JavaScript browser, Git, atau variabel build publik.
 
@@ -45,6 +45,17 @@ curl -X POST https://DOMAIN-NETLIFY/api/bootstrap-admin \
 ```
 
 Endpoint otomatis menolak bootstrap kedua jika profil sudah tersedia. Setelah berhasil, ganti `BOOTSTRAP_SECRET` di Netlify dan deploy ulang.
+
+## Membuat akun Pegawai/SPG
+
+Setelah Admin pertama login:
+
+1. Buka **Manajemen Akses**.
+2. Tambah pengguna dan pilih peran **Pegawai/SPG**.
+3. Hubungkan akun ke satu data staf.
+4. Pegawai hanya dapat mengajukan atas nama staf tersebut dan hanya melihat pengajuannya sendiri.
+
+Nama, lokasi kerja, dan identitas pengajuan dikunci berdasarkan relasi akun ke staf. Admin dan Operator tetap dapat membuat pengajuan untuk seluruh staf.
 
 ## Pemeriksaan lokal
 
