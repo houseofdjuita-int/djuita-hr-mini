@@ -3,3 +3,4 @@
 !.env.example
 .netlify/
 node_modules/
+supabase/.temp/
