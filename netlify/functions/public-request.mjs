@@ -7,6 +7,7 @@ const allowedTypes = new Set([
   'Izin Pulang Lebih Awal'
 ])
 const allowedShifts = new Set(['Pagi', 'Siang'])
+const replacementTypes = new Set(['Pemberitahuan Cuti SPG', 'Pemberitahuan Libur / Off SPG', 'Izin Tidak Masuk (Full Shift)'])
 const text = (value, max = 500) => String(value || '').trim().slice(0, max)
 
 export default async request => {
@@ -49,9 +50,9 @@ export default async request => {
       detail,
       reason,
       status: 'Submitted',
-      replacement_mode: null,
-      replacement_name: null,
-      replacement_nik: null,
+      replacement_mode: replacementTypes.has(letterType) ? 'external' : null,
+      replacement_name: replacementTypes.has(letterType) ? 'DITENTUKAN OLEH KANTOR SAAT PERSETUJUAN' : null,
+      replacement_nik: replacementTypes.has(letterType) ? '0000000000000000' : null,
       attachment_paths: [],
       created_by: owner.id
     }).select('id,created_at').single()
