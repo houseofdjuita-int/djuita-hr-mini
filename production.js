@@ -69,6 +69,7 @@
     cancellationNote: row.cancellation_note,
     approvedBy: row.approved_profile?.full_name,
     approvedAt: row.approved_at ? new Date(row.approved_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Jakarta' }) + ' WIB' : null,
+    approvedDate: row.approved_at ? new Date(row.approved_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }) : null,
     rejectedAt: row.rejected_at,
     created: new Date(row.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
   })

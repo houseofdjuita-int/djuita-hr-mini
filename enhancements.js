@@ -263,6 +263,9 @@
   window.openDocument = id => {
     originalOpenDocument(id)
     const request = requests.find(item => String(item.id) === String(id))
+    const formalDate = request.approvedDate || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' })
+    const meta = el('documentSheet').querySelector('.letter-meta')
+    if (meta && !el('documentSheet').querySelector('.letter-date')) meta.insertAdjacentHTML('afterend', `<div class="letter-date">Jakarta, ${esc(formalDate)}</div>`)
     const table = el('documentSheet').querySelector('.letter-details')
     const row = [...table.rows].find(item => item.cells[0]?.textContent.trim() === 'Rincian')
     if (row) { const rows = String(request.detail || '').trim().split(/\n+/).filter(Boolean).map(line => { const split = line.indexOf(':'); const tr = document.createElement('tr'); const label = document.createElement('td'); const value = document.createElement('td'); label.textContent = split < 0 ? 'Keterangan' : line.slice(0, split).trim(); value.textContent = ': ' + (split < 0 ? line : line.slice(split + 1).trim()); tr.append(label, value); return tr }); row.replaceWith(...rows) }
