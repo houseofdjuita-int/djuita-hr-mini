@@ -32,11 +32,25 @@ export default async request => {
     const endDate = text(body.endDate, 10)
     const reason = text(body.reason, 800)
     const detail = text(body.detail, 1000)
+    const needsReplacement = replacementTypes.has(letterType)
+    const replacementMode = needsReplacement && ['registered', 'external'].includes(body.replacementMode) ? body.replacementMode : null
     if (!employeeId || !/^\d{16}$/.test(nik) || !allowedTypes.has(letterType) || !allowedShifts.has(shift) || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate) || endDate < startDate || reason.length < 5 || !detail) {
       throw Object.assign(new Error('Data pengajuan belum lengkap atau tidak valid'), { status: 400 })
     }
     const { data: employee, error: employeeError } = await client.from('staff').select('id,full_name,position').eq('id', employeeId).eq('active', true).single()
     if (employeeError || !employee || !/SPG/i.test(employee.position)) throw Object.assign(new Error('Data SPG tidak ditemukan'), { status: 400 })
+    let replacementName = null
+    if (needsReplacement && replacementMode === 'registered') {
+      const replacementStaffId = text(body.replacementStaffId, 40)
+      const { data: replacement, error: replacementError } = await client.from('staff').select('id,full_name,position').eq('id', replacementStaffId).eq('active', true).single()
+      if (replacementError || !replacement || replacement.id === employee.id || !/SPG/i.test(replacement.position)) throw Object.assign(new Error('Pilih SPG pengganti yang valid'), { status: 400 })
+      replacementName = replacement.full_name
+    } else if (needsReplacement && replacementMode === 'external') {
+      replacementName = text(body.replacementName, 120)
+      if (replacementName.length < 3) throw Object.assign(new Error('Nama SPG temporary wajib diisi'), { status: 400 })
+    } else if (needsReplacement) {
+      throw Object.assign(new Error('SPG pengganti wajib dipilih'), { status: 400 })
+    }
     const { data: owner, error: ownerError } = await client.from('profiles').select('id').eq('active', true).in('role', ['Admin', 'Operator']).order('role').limit(1).single()
     if (ownerError || !owner) throw new Error('Akun kantor untuk menerima pengajuan belum tersedia')
     const { data, error } = await client.from('requests').insert({
@@ -50,9 +64,9 @@ export default async request => {
       detail,
       reason,
       status: 'Submitted',
-      replacement_mode: replacementTypes.has(letterType) ? 'external' : null,
-      replacement_name: replacementTypes.has(letterType) ? 'DITENTUKAN OLEH KANTOR SAAT PERSETUJUAN' : null,
-      replacement_nik: replacementTypes.has(letterType) ? '0000000000000000' : null,
+      replacement_mode: replacementMode,
+      replacement_name: replacementName,
+      replacement_nik: needsReplacement ? '0000000000000000' : null,
       attachment_paths: [],
       created_by: owner.id
     }).select('id,created_at').single()
