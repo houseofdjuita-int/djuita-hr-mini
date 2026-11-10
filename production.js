@@ -3,6 +3,7 @@
   let client = null
   let config = null
   let productionMode = false
+  let approvalBusy = false
   const legacyInitializeLogin = initializeLogin
   const legacyActivateSession = activateSession
   const legacyLogin = login
@@ -214,6 +215,12 @@
       return
     }
     legacyOpenReview(id)
+    approvalBusy = false
+    const actionStatus = document.getElementById('approvalActionStatus')
+    if (actionStatus) {
+      actionStatus.style.display = 'none'
+      actionStatus.textContent = ''
+    }
     if (productionMode) {
       const approver = document.getElementById('approverSelect')
       approver.innerHTML = `<option>${esc(currentUser.name)}</option>`
@@ -306,7 +313,22 @@
   decide = async action => {
     if (!productionMode) return legacyDecide(action)
     if (!['Admin', 'Approver'].includes(currentUser?.role)) { notify('Akses persetujuan ditolak'); return }
+    if (approvalBusy) return
     const note = document.getElementById('approverNote').value.trim()
+    const statusBox = document.getElementById('approvalActionStatus')
+    const actionButtons = ['approvalCancelButton', 'approvalRejectButton', 'approveButton'].map(id => document.getElementById(id)).filter(Boolean)
+    const setProgress = message => {
+      if (!statusBox) return
+      statusBox.style.display = 'block'
+      statusBox.textContent = message
+    }
+    const setBusy = busy => {
+      approvalBusy = busy
+      actionButtons.forEach(button => { button.disabled = busy })
+      const approveButton = document.getElementById('approveButton')
+      if (approveButton) approveButton.textContent = busy ? 'Memproses…' : 'Setujui dan Buat Surat PDF'
+    }
+    const approvedRequestId = reviewId
     try {
       if (action === 'Rejected') {
         const { error } = await client.rpc('reject_request', { p_request_id: reviewId, p_note: note })
@@ -331,18 +353,30 @@
           return
         }
         if (!signatureData) { notify('Unggah tanda tangan dan cap terlebih dahulu'); return }
+        setBusy(true)
+        setProgress('Menyiapkan penyimpanan dokumen privat…')
         const prepared = await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'prepare', requestId: reviewId }) })
         const paths = []
         for (let index = 0; index < prepared.ktpUploads.length; index++) {
+          setProgress(`Mengunggah KTP ${index + 1} dari ${prepared.ktpUploads.length}…`)
           paths.push(await uploadSignedData(approvalKtpImages[index], prepared.ktpUploads[index]))
         }
+        setProgress('Mengunggah tanda tangan dan cap kantor…')
         const signaturePath = await uploadSignedData(signatureData, prepared.signatureUpload)
+        setProgress('Menyetujui permohonan dan membuat nomor surat…')
         await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'approve', requestId: reviewId, note, attachmentPaths: paths, signaturePath, replacementMode, replacementName, replacementNik }) })
       }
       closeModal('reviewModal')
       await loadRequests()
       notify(action === 'Rejected' ? 'Permohonan ditolak' : action === 'Revision' ? 'Dikembalikan untuk revisi' : action === 'Cancelled' ? 'Permohonan dianulir' : 'Permohonan disetujui dan nomor surat dibuat')
-    } catch (error) { notify(error.message) }
+      if (action === 'Approve') await safeOpenDocument(approvedRequestId)
+    } catch (error) {
+      const message = `Proses gagal: ${error.message}`
+      setProgress(message)
+      notify(message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   safeOpenDocument = async id => {
