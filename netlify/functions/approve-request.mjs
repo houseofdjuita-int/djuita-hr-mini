@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { adminClient, env, handlerError, json } from './_lib/shared.mjs'
 
+const text = (value, max) => String(value || '').trim().slice(0, max)
+
 async function requireApprover(request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) throw Object.assign(new Error('Sesi login diperlukan'), { status: 401 })
@@ -14,7 +16,8 @@ async function requireApprover(request) {
   return { client, actor: profile, token }
 }
 
-const requiredKtpCount = request => request.replacement_name || request.letter_type === 'Surat Pergantian SPG' ? 2 : 1
+const replacementRequired = request => ['Pemberitahuan Cuti SPG', 'Pemberitahuan Libur / Off SPG', 'Izin Tidak Masuk (Full Shift)'].includes(request.letter_type)
+const requiredKtpCount = request => replacementRequired(request) || request.replacement_name || request.letter_type === 'Surat Pergantian SPG' ? 2 : 1
 
 export default async request => {
   if (request.method !== 'POST') return json({ error: 'Metode tidak diizinkan' }, 405)
@@ -53,7 +56,15 @@ export default async request => {
         throw Object.assign(new Error('Lampiran harus berupa JPG, PNG, atau WebP maksimal 8 MB'), { status: 400 })
       }
     }
-    const { error: updateError } = await client.from('requests').update({ attachment_paths: attachmentPaths }).eq('id', leaveRequest.id).eq('status', 'Submitted')
+    const replacementName = replacementRequired(leaveRequest) ? text(body.replacementName, 120) : null
+    const replacementNik = replacementRequired(leaveRequest) ? text(body.replacementNik, 16) : null
+    const replacementMode = replacementRequired(leaveRequest) && ['registered', 'external'].includes(body.replacementMode) ? body.replacementMode : null
+    if (replacementRequired(leaveRequest) && (!replacementName || !/^\d{16}$/.test(replacementNik) || !replacementMode)) {
+      throw Object.assign(new Error('Data SPG pengganti belum lengkap'), { status: 400 })
+    }
+    const changes = { attachment_paths: attachmentPaths }
+    if (replacementRequired(leaveRequest)) Object.assign(changes, { replacement_name: replacementName, replacement_nik: replacementNik, replacement_mode: replacementMode })
+    const { error: updateError } = await client.from('requests').update(changes).eq('id', leaveRequest.id).eq('status', 'Submitted')
     if (updateError) throw updateError
 
     const { url, publishableKey } = env()

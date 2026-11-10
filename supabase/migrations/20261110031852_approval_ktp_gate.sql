@@ -65,7 +65,12 @@ begin
 
   v_required_attachments := case
     when nullif(trim(v_request.replacement_name), '') is not null
-      or v_request.letter_type = 'Surat Pergantian SPG' then 2
+      or v_request.letter_type in (
+        'Pemberitahuan Cuti SPG',
+        'Pemberitahuan Libur / Off SPG',
+        'Izin Tidak Masuk (Full Shift)',
+        'Surat Pergantian SPG'
+      ) then 2
     else 1
   end;
   v_attachment_count := jsonb_array_length(p_attachment_paths);

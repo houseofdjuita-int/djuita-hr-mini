@@ -26,6 +26,11 @@
   to = "/.netlify/functions/approve-request"
   status = 200
 
+[[redirects]]
+  from = "/api/public-request"
+  to = "/.netlify/functions/public-request"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

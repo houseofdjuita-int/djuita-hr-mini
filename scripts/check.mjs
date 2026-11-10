@@ -7,6 +7,7 @@ const migration = fs.readFileSync('supabase/migrations/202607290001_initial.sql'
 const hardening = fs.readFileSync('supabase/migrations/20261109182658_harden_functions_and_storage.sql', 'utf8')
 const approvalGate = fs.readFileSync('supabase/migrations/20261110031852_approval_ktp_gate.sql', 'utf8')
 const approvalFunction = fs.readFileSync('netlify/functions/approve-request.mjs', 'utf8')
+const publicRequestFunction = fs.readFileSync('netlify/functions/public-request.mjs', 'utf8')
 
 for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
   if (match[1].trim()) new Function(match[1])
@@ -23,6 +24,8 @@ const required = [
   ['Approval requires private KTP', /Lampiran KTP belum lengkap/.test(approvalGate) && /ktp_attachment_count/.test(approvalGate)],
   ['Approver secure upload endpoint', /createSignedUploadUrl/.test(approvalFunction) && /requiredKtpCount/.test(approvalFunction)],
   ['KTP collected at approval', /approvalKtpImages/.test(production) && /attachment_paths: \[\]/.test(production)],
+  ['Public no-account request', /adminClient/.test(publicRequestFunction) && /status: 'Submitted'/.test(publicRequestFunction)],
+  ['Public request has no KTP upload', !/type="file"/.test(fs.readFileSync('ajukan.html', 'utf8'))],
   ['Production adapter', /initializeProductionPortal/.test(production)],
   ['No secret key in browser', !/SUPABASE_SECRET_KEY/.test(html + production)]
 ]

@@ -316,7 +316,15 @@
         if (error) throw error
       } else {
         const request = requests.find(item => String(item.id) === String(reviewId))
-        const needsSecond = !!request?.replacementName || request?.type === 'Surat Pergantian SPG'
+        const assignsReplacement = requiresReplacement(request?.type)
+        const replacementMode = assignsReplacement ? document.getElementById('approvalReplacementMode').value : request?.replacementMode
+        const replacementName = assignsReplacement ? (replacementMode === 'registered' ? document.getElementById('approvalReplacementStaff').value : document.getElementById('approvalReplacementName').value.trim()) : request?.replacementName
+        const replacementNik = assignsReplacement ? document.getElementById('approvalReplacementNik').value.trim() : request?.replacementNik
+        if (assignsReplacement && (!replacementName || !/^\d{16}$/.test(replacementNik))) {
+          notify('Lengkapi nama dan 16 digit NIK SPG pengganti')
+          return
+        }
+        const needsSecond = assignsReplacement || request?.type === 'Surat Pergantian SPG'
         if (!approvalKtpImages[0] || (needsSecond && !approvalKtpImages[1])) {
           notify(`Lengkapi KTP staf${needsSecond ? ' dan KTP SPG pengganti' : ''} sebelum menyetujui`)
           return
@@ -328,7 +336,7 @@
           paths.push(await uploadSignedData(approvalKtpImages[index], prepared.ktpUploads[index]))
         }
         const signaturePath = await uploadSignedData(signatureData, prepared.signatureUpload)
-        await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'approve', requestId: reviewId, note, attachmentPaths: paths, signaturePath }) })
+        await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'approve', requestId: reviewId, note, attachmentPaths: paths, signaturePath, replacementMode, replacementName, replacementNik }) })
       }
       closeModal('reviewModal')
       await loadRequests()
