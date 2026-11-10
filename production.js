@@ -126,6 +126,13 @@
     return path
   }
 
+  const uploadSignedData = async (dataUrl, upload) => {
+    const blob = dataUrlBlob(dataUrl)
+    const { error } = await client.storage.from('hr-private').uploadToSignedUrl(upload.path, upload.token, blob, { contentType: blob.type })
+    if (error) throw error
+    return upload.path
+  }
+
   const downloadData = async path => {
     const { data, error } = await client.storage.from('hr-private').download(path)
     if (error) throw error
@@ -279,17 +286,13 @@
     const replacementNik = needsReplacement ? document.getElementById('replacementNik').value.trim() : null
     if ((!employee && !assistance) || !employeeName || !/^\d{16}$/.test(nik) || !reason || !detail || !startDate || !endDate || endDate < startDate) { notify('Lengkapi data permohonan dengan benar'); return }
     if (needsReplacement && (!replacementName || !/^\d{16}$/.test(replacementNik))) { notify('Nama dan NIK SPG pengganti wajib lengkap'); return }
-    if (!ktpImageData || (needsReplacement && !secondKtpImageData)) { notify('Lampiran KTP wajib lengkap'); return }
     const id = crypto.randomUUID()
-    const base = `${currentUser.id}/${id}`
     try {
-      const paths = [await uploadData(ktpImageData, `${base}/ktp-staff.jpg`)]
-      if (secondKtpImageData) paths.push(await uploadData(secondKtpImageData, `${base}/ktp-pengganti.jpg`))
       const { error } = await client.from('requests').insert({
         id, employee_id: employee?.id || null, employee_name: employeeName, employee_nik: nik, letter_type: type,
         start_date: startDate, end_date: endDate, shift, detail,
         reason, replacement_mode: replacementMode, replacement_name: replacementName, replacement_nik: replacementNik,
-        attachment_paths: paths, status: event.submitter?.textContent?.toLowerCase().includes('draf') ? 'Draft' : 'Submitted', created_by: currentUser.id
+        attachment_paths: [], status: event.submitter?.textContent?.toLowerCase().includes('draf') ? 'Draft' : 'Submitted', created_by: currentUser.id
       })
       if (error) throw error
       closeModal('requestModal')
@@ -312,10 +315,20 @@
         const { error } = await client.rpc('review_request', { p_request_id: reviewId, p_action: action, p_note: note })
         if (error) throw error
       } else {
+        const request = requests.find(item => String(item.id) === String(reviewId))
+        const needsSecond = !!request?.replacementName || request?.type === 'Surat Pergantian SPG'
+        if (!approvalKtpImages[0] || (needsSecond && !approvalKtpImages[1])) {
+          notify(`Lengkapi KTP staf${needsSecond ? ' dan KTP SPG pengganti' : ''} sebelum menyetujui`)
+          return
+        }
         if (!signatureData) { notify('Unggah tanda tangan dan cap terlebih dahulu'); return }
-        const signaturePath = await uploadData(signatureData, `${currentUser.id}/${reviewId}/signature-${Date.now()}.png`)
-        const { error } = await client.rpc('approve_request', { p_request_id: reviewId, p_note: note, p_signature_path: signaturePath })
-        if (error) throw error
+        const prepared = await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'prepare', requestId: reviewId }) })
+        const paths = []
+        for (let index = 0; index < prepared.ktpUploads.length; index++) {
+          paths.push(await uploadSignedData(approvalKtpImages[index], prepared.ktpUploads[index]))
+        }
+        const signaturePath = await uploadSignedData(signatureData, prepared.signatureUpload)
+        await api('/api/approve-request', { method: 'POST', body: JSON.stringify({ action: 'approve', requestId: reviewId, note, attachmentPaths: paths, signaturePath }) })
       }
       closeModal('reviewModal')
       await loadRequests()

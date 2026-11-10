@@ -5,6 +5,8 @@ const html = fs.readFileSync('index.html', 'utf8')
 const production = fs.readFileSync('production.js', 'utf8')
 const migration = fs.readFileSync('supabase/migrations/202607290001_initial.sql', 'utf8')
 const hardening = fs.readFileSync('supabase/migrations/20261109182658_harden_functions_and_storage.sql', 'utf8')
+const approvalGate = fs.readFileSync('supabase/migrations/20261110031852_approval_ktp_gate.sql', 'utf8')
+const approvalFunction = fs.readFileSync('netlify/functions/approve-request.mjs', 'utf8')
 
 for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
   if (match[1].trim()) new Function(match[1])
@@ -18,6 +20,9 @@ const required = [
   ['Atomic approval RPC', /function public\.approve_request/i.test(migration)],
   ['Privileged RPCs not public', /revoke all on function public\.approve_request\(uuid, text, text\) from public, anon/i.test(hardening)],
   ['Storage upsert policy', /create policy storage_update_owner/i.test(hardening)],
+  ['Approval requires private KTP', /Lampiran KTP belum lengkap/.test(approvalGate) && /ktp_attachment_count/.test(approvalGate)],
+  ['Approver secure upload endpoint', /createSignedUploadUrl/.test(approvalFunction) && /requiredKtpCount/.test(approvalFunction)],
+  ['KTP collected at approval', /approvalKtpImages/.test(production) && /attachment_paths: \[\]/.test(production)],
   ['Production adapter', /initializeProductionPortal/.test(production)],
   ['No secret key in browser', !/SUPABASE_SECRET_KEY/.test(html + production)]
 ]

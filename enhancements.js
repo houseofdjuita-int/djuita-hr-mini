@@ -41,6 +41,9 @@
   employeeField.insertAdjacentHTML('afterend', '<div id="assistanceStaffField" class="field" style="display:none"><label>Nama staff perbantuan</label><input id="assistanceName" placeholder="Diisi otomatis dari KTP atau ketik nama lengkap"></div>')
   el('nikInput').closest('.field').querySelector('label').id = 'identityLabel'
   el('detailInput').closest('.field').id = 'detailField'
+  el('ktpInput').style.display = 'none'
+  el('ktpStatus').textContent = 'Foto KTP tidak diperlukan saat pengajuan. Kantor akan mengunggahnya secara privat pada tahap persetujuan internal.'
+  el('secondKtpField').style.display = 'none'
 
   const roleSelect = el('accessRole')
   roleSelect.add(new Option('Pegawai/SPG — ajukan dan lihat permohonan sendiri', employeeRole))
@@ -145,9 +148,8 @@
     el('earlyLeaveField').style.display = early ? 'block' : 'none'
     el('leaveCategoryField').style.display = type === CUTI ? 'block' : 'none'
     originalSyncGuide(force)
-    const needsTwo = requiresReplacement(type) || type === 'Surat Pergantian SPG'
-    el('secondKtpField').style.display = needsTwo ? 'block' : 'none'
-    if (assistance) el('nikGuide').textContent = 'Nama dan NIK staff perbantuan dapat dibaca otomatis dari foto KTP.'
+    el('secondKtpField').style.display = 'none'
+    el('nikGuide').textContent = assistance ? 'Isi NIK staff perbantuan. Foto KTP akan diunggah oleh kantor saat persetujuan.' : 'Isi 16 digit NIK. Foto KTP akan diunggah oleh kantor saat persetujuan internal.'
     if (early) syncEarlyLeaveTimes()
     updateStructuredSummary()
   }

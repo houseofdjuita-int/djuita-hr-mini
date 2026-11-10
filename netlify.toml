@@ -21,6 +21,11 @@
   to = "/.netlify/functions/bootstrap-admin"
   status = 200
 
+[[redirects]]
+  from = "/api/approve-request"
+  to = "/.netlify/functions/approve-request"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
