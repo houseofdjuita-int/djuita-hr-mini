@@ -67,6 +67,15 @@ npx netlify dev
 
 Mode produksi lokal memerlukan `.env` yang dibuat dari `.env.example`.
 
+## Kalender dan email pengingat cuti
+
+- Dasbor menampilkan cuti/ketidakhadiran yang sudah disetujui serta placeholder yang masih menunggu persetujuan.
+- Netlify Scheduled Function berjalan setiap hari pukul 08.00 WIB.
+- Email hanya dikirim untuk permohonan yang sudah disetujui dan dimulai tiga hari lagi.
+- Penerima: `houseofdjuita@gmail.com` dan `hrtiara@gmail.com`.
+- Set `GMAIL_USER=houseofdjuita@gmail.com` dan `GMAIL_APP_PASSWORD` menggunakan Google App Password pada environment variables Netlify dengan scope Functions.
+- Kolom `reminder_sent_at` memastikan setiap permohonan hanya memicu satu email H-3.
+
 ## Catatan keamanan data KTP
 
 - Bucket bersifat private dan dibatasi RLS.

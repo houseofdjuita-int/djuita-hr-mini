@@ -8,6 +8,8 @@ const hardening = fs.readFileSync('supabase/migrations/20261109182658_harden_fun
 const approvalGate = fs.readFileSync('supabase/migrations/20261110031852_approval_ktp_gate.sql', 'utf8')
 const approvalFunction = fs.readFileSync('netlify/functions/approve-request.mjs', 'utf8')
 const publicRequestFunction = fs.readFileSync('netlify/functions/public-request.mjs', 'utf8')
+const reminderFunction = fs.readFileSync('netlify/functions/leave-reminder.mjs', 'utf8')
+const reminderMigration = fs.readFileSync('supabase/migrations/20261119071806_leave_email_reminders.sql', 'utf8')
 
 for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
   if (match[1].trim()) new Function(match[1])
@@ -27,6 +29,10 @@ const required = [
   ['Public no-account request', /adminClient/.test(publicRequestFunction) && /status: 'Submitted'/.test(publicRequestFunction)],
   ['Public request has no KTP upload', !/type="file"/.test(fs.readFileSync('ajukan.html', 'utf8'))],
   ['Production adapter', /initializeProductionPortal/.test(production)],
+  ['Dashboard leave calendar', /renderLeaveCalendar/.test(html) && /Placeholder · menunggu persetujuan/.test(html)],
+  ['H-3 email reminder', /schedule\('0 1 \* \* \*'/.test(reminderFunction) && /jakartaDate\(3\)/.test(reminderFunction)],
+  ['Reminder recipients', /houseofdjuita@gmail\.com/.test(reminderFunction) && /hrtiara@gmail\.com/.test(reminderFunction)],
+  ['Reminder deduplication', /reminder_sent_at/.test(reminderFunction) && /reminder_sent_at/.test(reminderMigration)],
   ['No secret key in browser', !/SUPABASE_SECRET_KEY/.test(html + production)]
 ]
 
